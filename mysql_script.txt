@@ -1,0 +1,166 @@
+ssh25506218hc2sunacza@penguin:~/web 6 week$ mysql -u root -p
+Enter password: 
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 6
+Server version: 10.11.6-MariaDB-0+deb12u1 Debian 12
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MariaDB [(none)]> CREATE DATABASE water_access_db;
+Query OK, 1 row affected (0.015 sec)
+
+MariaDB [(none)]> USE water_access_db;
+Database changed
+MariaDB [water_access_db]> CREATE TABLE Region (
+    ->     region_id INT AUTO_INCREMENT PRIMARY KEY,
+    ->     region_name VARCHAR(255) NOT NULL,
+    ->     population INT,
+    ->     water_access_percentage DECIMAL(5,2)
+    -> );
+Query OK, 0 rows affected (0.050 sec)
+
+MariaDB [water_access_db]> 
+MariaDB [water_access_db]> CREATE TABLE Water_Source (
+    ->     source_id INT AUTO_INCREMENT PRIMARY KEY,
+    ->     source_type VARCHAR(255) NOT NULL,
+    ->     capacity DECIMAL(10,2),
+    ->     location VARCHAR(255)
+    -> );
+Query OK, 0 rows affected (0.028 sec)
+
+MariaDB [water_access_db]> 
+MariaDB [water_access_db]> CREATE TABLE Water_Access (
+    ->     access_id INT AUTO_INCREMENT PRIMARY KEY,
+    ->     region_id INT,
+    ->     source_id INT,
+    ->     access_date DATE,
+    ->     access_status VARCHAR(50),
+    ->     FOREIGN KEY (region_id) REFERENCES Region(region_id),
+    ->     FOREIGN KEY (source_id) REFERENCES Water_Source(source_id)
+    -> );
+Query OK, 0 rows affected (0.052 sec)
+
+MariaDB [water_access_db]> INSERT INTO Region (region_name, population, water_access_percentage)
+    -> VALUES 
+    -> ('North Region', 500000, 85.5),
+    -> ('South Region', 300000, 70.0),
+    -> ('East Region', 250000, 90.0),
+    -> ('West Region', 400000, 65.0);
+Query OK, 4 rows affected (0.050 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+MariaDB [water_access_db]> 
+MariaDB [water_access_db]> INSERT INTO Water_Source (source_type, capacity, location)
+    -> VALUES 
+    -> ('River', 10000.00, 'North Region'),
+    -> ('Well', 5000.00, 'South Region'),
+    -> ('Lake', 15000.00, 'East Region'),
+    -> ('Reservoir', 12000.00, 'West Region');
+Query OK, 4 rows affected (0.008 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+MariaDB [water_access_db]> 
+MariaDB [water_access_db]> INSERT INTO Water_Access (region_id, source_id, access_date, access_status)
+    -> VALUES 
+    -> (1, 1, '2024-01-15', 'Operational'),
+    -> (2, 2, '2024-01-20', 'Maintenance'),
+    -> (3, 3, '2024-02-05', 'Operational'),
+    -> (4, 4, '2024-02-15', 'Operational');
+Query OK, 4 rows affected (0.018 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+MariaDB [water_access_db]> -- Retrieve regions with their water access percentage
+MariaDB [water_access_db]> SELECT region_name, water_access_percentage
+    -> FROM Region;
++--------------+-------------------------+
+| region_name  | water_access_percentage |
++--------------+-------------------------+
+| North Region |                   85.50 |
+| South Region |                   70.00 |
+| East Region  |                   90.00 |
+| West Region  |                   65.00 |
++--------------+-------------------------+
+4 rows in set (0.021 sec)
+
+MariaDB [water_access_db]> 
+MariaDB [water_access_db]> -- Retrieve water sources and their status
+MariaDB [water_access_db]> SELECT r.region_name, ws.source_type, wa.access_status
+    -> FROM Water_Access wa
+    -> JOIN Region r ON wa.region_id = r.region_id
+    -> JOIN Water_Source ws ON wa.source_id = ws.source_id;
++--------------+-------------+---------------+
+| region_name  | source_type | access_status |
++--------------+-------------+---------------+
+| North Region | River       | Operational   |
+| South Region | Well        | Maintenance   |
+| East Region  | Lake        | Operational   |
+| West Region  | Reservoir   | Operational   |
++--------------+-------------+---------------+
+4 rows in set (0.041 sec)
+
+MariaDB [water_access_db]> -- Analyze the number of operational water sources by region
+MariaDB [water_access_db]> SELECT r.region_name, COUNT(wa.access_id) AS operational_sources
+    -> FROM Region r
+    -> JOIN Water_Access wa ON r.region_id = wa.region_id
+    -> WHERE wa.access_status = 'Operational'
+    -> GROUP BY r.region_name;
++--------------+---------------------+
+| region_name  | operational_sources |
++--------------+---------------------+
+| East Region  |                   1 |
+| North Region |                   1 |
+| West Region  |                   1 |
++--------------+---------------------+
+3 rows in set (0.014 sec)
+
+MariaDB [water_access_db]> 
+MariaDB [water_access_db]> -- Average water access percentage by region
+MariaDB [water_access_db]> SELECT r.region_name, AVG(r.water_access_percentage) AS avg_access_percentage
+    -> FROM Region r
+    -> GROUP BY r.region_name;
++--------------+-----------------------+
+| region_name  | avg_access_percentage |
++--------------+-----------------------+
+| East Region  |             90.000000 |
+| North Region |             85.500000 |
+| South Region |             70.000000 |
+| West Region  |             65.000000 |
++--------------+-----------------------+
+4 rows in set (0.002 sec)
+
+MariaDB [water_access_db]> SELECT * FROM Region;
++-----------+--------------+------------+-------------------------+
+| region_id | region_name  | population | water_access_percentage |
++-----------+--------------+------------+-------------------------+
+|         1 | North Region |     500000 |                   85.50 |
+|         2 | South Region |     300000 |                   70.00 |
+|         3 | East Region  |     250000 |                   90.00 |
+|         4 | West Region  |     400000 |                   65.00 |
++-----------+--------------+------------+-------------------------+
+4 rows in set (0.017 sec)
+
+MariaDB [water_access_db]> SELECT * FROM Water_Source;
++-----------+-------------+----------+--------------+
+| source_id | source_type | capacity | location     |
++-----------+-------------+----------+--------------+
+|         1 | River       | 10000.00 | North Region |
+|         2 | Well        |  5000.00 | South Region |
+|         3 | Lake        | 15000.00 | East Region  |
+|         4 | Reservoir   | 12000.00 | West Region  |
++-----------+-------------+----------+--------------+
+4 rows in set (0.001 sec)
+
+MariaDB [water_access_db]> SELECT * FROM Water_Access;
++-----------+-----------+-----------+-------------+---------------+
+| access_id | region_id | source_id | access_date | access_status |
++-----------+-----------+-----------+-------------+---------------+
+|         1 |         1 |         1 | 2024-01-15  | Operational   |
+|         2 |         2 |         2 | 2024-01-20  | Maintenance   |
+|         3 |         3 |         3 | 2024-02-05  | Operational   |
+|         4 |         4 |         4 | 2024-02-15  | Operational   |
++-----------+-----------+-----------+-------------+---------------+
+4 rows in set (0.001 sec)
+
+MariaDB [water_access_db]> 

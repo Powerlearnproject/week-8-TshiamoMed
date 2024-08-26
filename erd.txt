@@ -1,0 +1,11 @@
+[Region] 1---N [Water_Access] N---1 [Water_Source]
+
++--------------+       +-------------------+       +----------------+
+| Region       |       | Water_Access      |       | Water_Source   |
++--------------+       +-------------------+       +----------------+
+| region_id (PK)|<--1---| access_id (PK)    |---N--> | source_id (PK) |
+| region_name   |       | region_id (FK)    |       | source_type    |
+| population    |       | source_id (FK)    |       | capacity       |
+| water_access_percentage | access_date    |       | location       |
++--------------+       | access_status     |       +----------------+
+                       +-------------------+
